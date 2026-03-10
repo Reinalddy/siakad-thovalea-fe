@@ -5,9 +5,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
     LayoutDashboard, BookOpen, FileText, CreditCard,
-    Settings, Menu, X, GraduationCap, Bell, User
+    Settings, Menu, X, GraduationCap, Bell, User,
+    LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/store/authStore";
+import api from "@/lib/axios";
 
 const sidebarLinks = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -20,6 +23,19 @@ const sidebarLinks = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const pathname = usePathname();
+
+    const logoutAction = useAuthStore((state) => state.logout);
+
+    const handleLogout = async () => {
+        try {
+            // Tembak API backend untuk menghapus token di database (Sanctum)
+            await api.post('/logout');
+        } catch (error) {
+            console.error("Gagal logout dari server", error);
+        } finally {
+            logoutAction();
+        }
+    };
 
     return (
         <div className="flex min-h-screen bg-slate-50">
@@ -52,8 +68,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             return (
                                 <Link key={link.name} href={link.href} onClick={() => setIsSidebarOpen(false)}>
                                     <span className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${isActive
-                                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                                            : "text-slate-400 hover:bg-slate-900 hover:text-slate-100"
+                                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                        : "text-slate-400 hover:bg-slate-900 hover:text-slate-100"
                                         }`}>
                                         <Icon className={`h-5 w-5 ${isActive ? "text-emerald-400" : "text-slate-500"}`} />
                                         {link.name}
@@ -90,6 +106,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 <User className="h-5 w-5" />
                             </div>
                         </div>
+
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleLogout}
+                            className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 ml-2 transition-colors"
+                            title="Keluar dari Sistem"
+                        >
+                            <LogOut className="h-5 w-5" />
+                        </Button>
                     </div>
                 </header>
 

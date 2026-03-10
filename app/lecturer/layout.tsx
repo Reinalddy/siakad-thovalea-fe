@@ -5,9 +5,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
     LayoutDashboard, Users, BookOpen, CheckSquare,
-    Settings, Menu, X, GraduationCap, Bell, UserCircle, Briefcase
+    Settings, Menu, X, GraduationCap, Bell, UserCircle, Briefcase,
+    LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import api from "@/lib/axios";
+import { useAuthStore } from "@/store/authStore";
 
 // Menu khusus Dosen
 const lecturerLinks = [
@@ -22,6 +25,18 @@ const lecturerLinks = [
 export default function LecturerLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const pathname = usePathname();
+
+    const logoutAction = useAuthStore((state) => state.logout);
+
+    const handleLogout = async () => {
+        try {
+            await api.post('/logout');
+        } catch (error) {
+            console.error("Gagal logout dari server", error);
+        } finally {
+            logoutAction();
+        }
+    };
 
     return (
         <div className="flex min-h-screen bg-slate-50">
@@ -54,8 +69,8 @@ export default function LecturerLayout({ children }: { children: React.ReactNode
                             return (
                                 <Link key={link.name} href={link.href} onClick={() => setIsSidebarOpen(false)}>
                                     <span className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${isActive
-                                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                                            : "text-slate-400 hover:bg-slate-800 hover:text-slate-100"
+                                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                        : "text-slate-400 hover:bg-slate-800 hover:text-slate-100"
                                         }`}>
                                         <Icon className={`h-5 w-5 ${isActive ? "text-emerald-400" : "text-slate-500"}`} />
                                         {link.name}
@@ -97,6 +112,16 @@ export default function LecturerLayout({ children }: { children: React.ReactNode
                                 <UserCircle className="h-6 w-6" />
                             </div>
                         </div>
+
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleLogout}
+                            className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 ml-2 transition-colors"
+                            title="Keluar dari Sistem"
+                        >
+                            <LogOut className="h-5 w-5" />
+                        </Button>
                     </div>
                 </header>
 

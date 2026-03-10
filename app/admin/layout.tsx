@@ -5,9 +5,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
     LayoutDashboard, Users, Database, CalendarDays,
-    Wallet, Settings, Menu, X, ShieldCheck, Bell, UserCircle
+    Wallet, Settings, Menu, X, ShieldCheck, Bell, UserCircle,
+    LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import api from "@/lib/axios";
+import { useAuthStore } from "@/store/authStore";
 
 // Menu Navigasi Admin
 const adminLinks = [
@@ -22,6 +25,17 @@ const adminLinks = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const pathname = usePathname();
+    const logoutAction = useAuthStore((state) => state.logout);
+
+    const handleLogout = async () => {
+        try {
+            await api.post('/logout');
+        } catch (error) {
+            console.error("Gagal logout dari server", error);
+        } finally {
+            logoutAction();
+        }
+    };
 
     return (
         <div className="flex min-h-screen bg-slate-50">
@@ -95,6 +109,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 <UserCircle className="h-6 w-6" />
                             </div>
                         </div>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleLogout}
+                            className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 ml-2 transition-colors"
+                            title="Keluar dari Sistem"
+                        >
+                            <LogOut className="h-5 w-5" />
+                        </Button>
                     </div>
                 </header>
 
