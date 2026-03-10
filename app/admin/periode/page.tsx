@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import toast from 'react-hot-toast';
 import {
     CalendarDays, Plus, PlayCircle, Edit, Trash2,
     CheckCircle2, AlertTriangle, Clock, Lock, CalendarCheck, Loader2
@@ -82,17 +83,22 @@ export default function ManajemenPeriodePage() {
     const handleSubmitModal = async (formData: PeriodFormData) => {
         setIsSubmitting(true);
         try {
+            let toastId: string | undefined;
             if (formData.id) {
                 // Mode Update (Pastikan route PUT /admin/periods/{id} sudah ada di Laravel)
-                await api.put(`/admin/periods/${formData.id}`, formData);
+                const response = await api.put(`/admin/periods/${formData.id}`, formData);
+                toastId = response.data.id;
+                toast.success("Periode berhasil diperbarui!", { id: toastId });
             } else {
                 // Mode Create
-                await api.post('/admin/periods', formData);
+                const response = await api.post('/admin/periods', formData);
+                toastId = response.data.id;
+                toast.success("Periode berhasil dibuat!", { id: toastId });
             }
             setIsModalOpen(false);
             fetchPeriods(); // Refresh tabel
         } catch (error: any) {
-            alert(error.response?.data?.message || "Gagal menyimpan data.");
+            toast.error(error.response?.data?.message || "Gagal menyimpan data.");
         } finally {
             setIsSubmitting(false);
         }
@@ -202,8 +208,8 @@ export default function ManajemenPeriodePage() {
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${isAktif ? "bg-emerald-100 text-emerald-700 border-emerald-200" :
-                                                    isSelesai ? "bg-slate-100 text-slate-600 border-slate-200" :
-                                                        "bg-amber-100 text-amber-700 border-amber-200"
+                                                isSelesai ? "bg-slate-100 text-slate-600 border-slate-200" :
+                                                    "bg-amber-100 text-amber-700 border-amber-200"
                                                 }`}>
                                                 {isAktif && <CheckCircle2 className="h-3 w-3" />}
                                                 {periode.status}
