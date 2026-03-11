@@ -136,13 +136,28 @@ export default function ManajemenPeriodePage() {
     };
 
     const handleDelete = async (id: number) => {
-        if (confirm("Apakah Anda yakin ingin menghapus periode Draft ini secara permanen?")) {
+        const result = await Swal.fire({
+            title: 'Hapus Periode?',
+            text: "Periode berstatus Draft ini akan dihapus permanen. Anda tidak dapat mengembalikannya!",
+            icon: 'error',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        });
+
+        if (result.isConfirmed) {
             setIsActionLoading(id);
+            const toastId = toast.loading("Menghapus periode...");
+
             try {
                 await api.delete(`/admin/periods/${id}`);
+                toast.success("Periode berhasil dihapus!", { id: toastId });
                 fetchPeriods();
             } catch (error: any) {
-                alert(error.response?.data?.message || "Gagal menghapus periode.");
+                toast.error(error.response?.data?.message || "Gagal menghapus periode.", { id: toastId });
             } finally {
                 setIsActionLoading(null);
             }
