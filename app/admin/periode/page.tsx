@@ -9,9 +9,8 @@ import {
     CheckCircle2, AlertTriangle, Clock, Lock, CalendarCheck, Loader2
 } from "lucide-react";
 import api from "@/lib/axios";
-
-// Import Komponen Modal yang baru kita buat
 import PeriodModal, { PeriodFormData } from "@/components/admin/PeriodModal";
+import Swal from "sweetalert2";
 
 interface AcademicPeriod {
     id: number;
@@ -87,12 +86,12 @@ export default function ManajemenPeriodePage() {
             if (formData.id) {
                 // Mode Update (Pastikan route PUT /admin/periods/{id} sudah ada di Laravel)
                 const response = await api.put(`/admin/periods/${formData.id}`, formData);
-                toastId = response.data.id;
+                toastId = toast.loading("Memperbarui periode...");
                 toast.success("Periode berhasil diperbarui!", { id: toastId });
             } else {
                 // Mode Create
                 const response = await api.post('/admin/periods', formData);
-                toastId = response.data.id;
+                toastId = toast.loading("Membuat periode...");
                 toast.success("Periode berhasil dibuat!", { id: toastId });
             }
             setIsModalOpen(false);
@@ -105,13 +104,31 @@ export default function ManajemenPeriodePage() {
     };
 
     const handleActivate = async (id: number) => {
-        if (confirm("PERINGATAN KRUSIAL!\nMengaktifkan periode ini akan menutup periode sebelumnya. Lanjutkan?")) {
+        const result = await Swal.fire({
+            title: 'Peringatan Krusial!',
+            text: "Mengaktifkan periode ini akan otomatis menutup periode yang sedang berjalan. Lanjutkan?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#2563eb',
+            cancelButtonColor: '#e11d48',
+            confirmButtonText: 'Ya, Aktifkan!',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        });
+
+        if (result.isConfirmed) {
             setIsActionLoading(id);
+            const toastId = toast.loading("Mengaktifkan periode...");
+
             try {
                 await api.put(`/admin/periods/${id}/set-active`);
+
+                toast.success("Periode berhasil diaktifkan!", { id: toastId });
+
                 fetchPeriods();
+
             } catch (error: any) {
-                alert(error.response?.data?.message || "Terjadi kesalahan.");
+                toast.error(error.response?.data?.message || "Gagal mengaktifkan periode.", { id: toastId });
             } finally {
                 setIsActionLoading(null);
             }
